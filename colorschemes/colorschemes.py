@@ -1,7 +1,7 @@
 """This module contains a few concrete colour cycles to play with"""
 
 from driver import colorcycletemplate
-
+print("VOICI LE COLORSHEME")
 
 class StrandTest(colorcycletemplate.ColorCycleTemplate):
     """Runs a simple strand test (9 LEDs wander through the strip)."""
@@ -23,35 +23,40 @@ class StrandTest(colorcycletemplate.ColorCycleTemplate):
             bloblen = num_led - 3
         if num_led <= 0:
             bloblen = 1
-            # The head pixel that will be turned on in this cycle
+        # The head pixel that will be turned on in this cycle
         head = (current_step + bloblen) % num_steps_per_cycle
-        tail = current_step  # The tail pixel that will be turned off
+        tail = current_step # The tail pixel that will be turned off
         strip.set_pixel_rgb(head, self.color)  # Paint head
         strip.set_pixel_rgb(tail, 0)  # Clear tail
 
-        return 1  # Repaint is necessary
-
-
+        return 1 # Repaint is necessary
+    
 class TheaterChase(colorcycletemplate.ColorCycleTemplate):
+
     """Runs a 'marquee' effect around the strip."""
+    print("ON EST DANS LA CLASSE theater")
+
 
     def update(self, strip, num_led, num_steps_per_cycle, current_step,
                current_cycle):
+
+        print("dans la class THEATER:::UPDATE VOICI LE strip {0}".format(strip))
+        self.strip = strip
+
         # One cycle = One trip through the color wheel, 0..254
         # Few cycles = quick transition, lots of cycles = slow transition
         # Note: For a smooth transition between cycles, numStepsPerCycle must
         # be a multiple of 7
-        start_index = current_step % 7  # One segment is 2 blank, and 5 filled
-        color_index = strip.wheel(int(round(255 / num_steps_per_cycle *
+        start_index = current_step % 7 # One segment is 2 blank, and 5 filled
+        color_index = strip.wheel(int(round(255/num_steps_per_cycle *
                                             current_step, 0)))
         for pixel in range(num_led):
             # Two LEDs out of 7 are blank. At each step, the blank
             # ones move one pixel ahead.
-            if ((pixel + start_index) % 7 == 0) or ((pixel + start_index) % 7 == 1):
+            if ((pixel+start_index) % 7 == 0) or ((pixel+start_index) % 7 == 1):
                 strip.set_pixel_rgb(pixel, 0)
-            else:
-                strip.set_pixel_rgb(pixel, color_index)
-        return 1
+            else: strip.set_pixel_rgb(pixel, color_index)
+            return 1
 
 
 class RoundAndRound(colorcycletemplate.ColorCycleTemplate):
@@ -59,37 +64,60 @@ class RoundAndRound(colorcycletemplate.ColorCycleTemplate):
 
     def init(self, strip, num_led):
         strip.set_pixel_rgb(0, 0xFF0000)
-        strip.set_pixel_rgb(1, 0xFF0000, 5)  # Only 5% brightness
+        strip.set_pixel_rgb(1, 0xFF0000, 20) # Only 20% brightness
         strip.set_pixel_rgb(2, 0xFF0000)
+        self.strip = strip
 
     def update(self, strip, num_led, num_steps_per_cycle, current_step,
                current_cycle):
+
         # Simple class to demonstrate the "rotate" method
         strip.rotate()
         return 1
+		
+		
+#pour gerer le handler injured
+class RoundAndRoundInjured(colorcycletemplate.ColorCycleTemplate):
+    """Runs three LEDs around the strip."""
 
+    def init(self, strip, num_led):
+        print (" DANS LE CONSTRUCTEUR DE RoundAndRoundInjured ")
+        strip.set_pixel_rgb(0, 0xFF0000,10)
+        strip.set_pixel_rgb(1, 0xFF0000,10) # Only 25% brightness
+        strip.set_pixel_rgb(2, 0xFF0000,10)
+        self.strip = strip
 
+    def update(self, strip, num_led, num_steps_per_cycle, current_step,
+               current_cycle):
+
+        # Simple class to demonstrate the "rotate" method
+        strip.rotate()
+        return 1
+		
 class Solid(colorcycletemplate.ColorCycleTemplate):
     """Paints the strip with one colour."""
 
-    def update(self, strip, num_led, num_steps_per_cycle, current_step, current_cycle):
-        stripcolour = 0xFFFFFF
-        if current_step == 1:
+    def update(self, strip, num_led, num_steps_per_cycle, current_step,
+               current_cycle):
+        if (current_step == 0):
+            stripcolour = 0xFFFFFF
+        if (current_step == 1):
             stripcolour = 0xFF0000
-        if current_step == 2:
+        if (current_step == 2):
             stripcolour = 0x00FF00
-        if current_step == 3:
+        if (current_step == 3):
             stripcolour = 0x0000FF
         for led in range(0, num_led):
-            strip.set_pixel_rgb(led, stripcolour, 5)  # Paint 5% white
+            strip.set_pixel_rgb(led,stripcolour,5) # Paint 5% white
         return 1
 
 
 class Rainbow(colorcycletemplate.ColorCycleTemplate):
     """Paints a rainbow effect across the entire strip."""
-
     def update(self, strip, num_led, num_steps_per_cycle, current_step,
                current_cycle):
+        print("dans la class RAINBOW:::UPDATE VOICI LE strip {0}".format(strip))
+        self.strip = strip
         # One cycle = One trip through the color wheel, 0..254
         # Few cycles = quick transition, lots of cycles = slow transition
         # -> LED 0 goes from index 0 to 254 in numStepsPerCycle cycles.
@@ -99,8 +127,8 @@ class Rainbow(colorcycletemplate.ColorCycleTemplate):
         #     again until the last one is just below LED 0. This way, the
         #     strip always shows one full rainbow, regardless of the
         #     number of LEDs
-        scale_factor = 255 / num_led  # Index change between two neighboring LEDs
-        start_index = 255 / num_steps_per_cycle * current_step  # LED 0
+        scale_factor = 255 / num_led # Index change between two neighboring LEDs
+        start_index = 255 / num_steps_per_cycle * current_step # LED 0
         for i in range(num_led):
             # Index of LED i, not rounded and not wrapped at 255
             led_index = start_index + i * scale_factor
@@ -109,4 +137,12 @@ class Rainbow(colorcycletemplate.ColorCycleTemplate):
             # Get the actual color out of the wheel
             pixel_color = strip.wheel(led_index_rounded_wrapped)
             strip.set_pixel_rgb(i, pixel_color)
-        return 1  # All pixels are set in the buffer, so repaint the strip now
+        return 1 # All pixels are set in the buffer, so repaint the strip now
+		
+
+	
+
+
+
+
+
